@@ -84,7 +84,7 @@ export default function App() {
     {
       role: "assistant",
       content:
-        "Upload the FIH Rules of Hockey PDF to get started. Then ask a question about penalties, scoring, equipment, goalkeepers, aerial balls or umpiring.",
+        "After uploading the rules, ask a question about penalties, scoring, aerial balls or anything else.",
       timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
     },
   ]);
