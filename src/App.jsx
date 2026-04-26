@@ -1,5 +1,5 @@
 import React, { useMemo, useRef, useState } from "react";
-import { Upload, Send, Search, BookOpen, Loader2, AlertCircle } from "lucide-react";
+import { Upload, Send, Search, BookOpen, Loader2, AlertCircle, FileText, MessageSquare, Info } from "lucide-react";
 import "./App.css";
 
 function normalise(text) {
@@ -30,7 +30,8 @@ function splitIntoChunks(pages) {
     for (const block of blocks) {
       if (block.length < 40) continue;
       chunks.push({
-        id: `${page.page}-${chunks.length}`,
+        id: `${page.fileName || "file"}-${page.page}-${chunks.length}`,
+        fileName: page.fileName || "Uploaded PDF",
         page: page.page,
         text: block,
         tokens: tokenize(block),
@@ -67,7 +68,7 @@ function buildAnswer(question, matches) {
 
   const bullets = matches
     .slice(0, 3)
-    .map((m) => `• Page ${m.page}: ${m.text.length > 420 ? m.text.slice(0, 420) + "…" : m.text}`)
+    .map((m) => `• ${m.fileName}, page ${m.page}: ${m.text.length > 420 ? m.text.slice(0, 420) + "…" : m.text}`)
     .join("\n\n");
 
   return `Based on the closest rule text I found for “${question}”:\n\n${bullets}`;
@@ -83,7 +84,7 @@ export default function App() {
     {
       role: "assistant",
       content:
-        "Upload the field hockey rules PDF, then ask things like: “When is a penalty corner awarded?” or “Can a player use their foot?”",
+        "Upload the FIH Rules of Hockey PDF to get started. Then ask a question about penalties, scoring, equipment, goalkeepers, aerial balls or umpiring.",
     },
   ]);
   const fileInputRef = useRef(null);
@@ -94,8 +95,6 @@ export default function App() {
   async function parsePdf(file) {
     setError("");
     setIsParsing(true);
-    // This prototype keeps uploaded PDFs in browser memory only.
-    // Each upload is parsed and added to the searchable index.
     const uploadedAt = new Date().toLocaleTimeString();
 
     try {
@@ -111,10 +110,10 @@ export default function App() {
         const page = await pdf.getPage(pageNum);
         const content = await page.getTextContent();
         const text = content.items.map((item) => item.str).join(" ");
-        parsedPages.push({ page: pageNum, text });
+        parsedPages.push({ page: pageNum, text, fileName: file.name });
       }
 
-      setPages((prev) => [...prev, ...parsedPages.map((page) => ({ ...page, fileName: file.name }))]);
+      setPages((prev) => [...prev, ...parsedPages]);
       const count = splitIntoChunks(parsedPages).length;
       setUploadedFiles((prev) => [
         ...prev,
@@ -166,45 +165,55 @@ export default function App() {
   const examples = [
     "When is a penalty corner awarded?",
     "Can a player use their foot?",
-    "What is the 5 metre rule for aerial balls?",
-    "Can defenders self-pass while wearing penalty corner protection?",
-    "When is a goal scored?",
+    "What is dangerous play?",
+    "When is a green card shown?",
+    "What is the role of the umpire?",
   ];
 
   return (
     <div className="page">
-      <div className="container">
-        <header className="header">
-          <div>
-            <div className="badge"><BookOpen size={16} /> Field Hockey Rules Assistant</div>
-            <h1>Ask the hockey rules PDF</h1>
-            <p>A browser chatbot prototype that searches your uploaded rules PDF and gives page references.</p>
+      <div className="shell">
+        <header className="hero">
+          <div className="clubMark" aria-hidden="true">
+            <div className="sticks">⚔</div>
           </div>
-          <div>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="application/pdf"
-              hidden
-              onChange={(e) => e.target.files?.[0] && parsePdf(e.target.files[0])}
-            />
-            <button className="primary" onClick={() => fileInputRef.current?.click()}>
-              {isParsing ? <Loader2 className="spin" size={18} /> : <Upload size={18} />}
-              Upload PDF
-            </button>
+          <div className="heroText">
+            <div className="eyebrow">Field Hockey Rules Assistant</div>
+            <h1>Ipswich Hockey Rules Assistant</h1>
+            <p>Quick answers from the FIH Rules of Hockey</p>
           </div>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="application/pdf"
+            hidden
+            onChange={(e) => e.target.files?.[0] && parsePdf(e.target.files[0])}
+          />
+          <button className="uploadButton" onClick={() => fileInputRef.current?.click()}>
+            {isParsing ? <Loader2 className="spin" size={18} /> : <Upload size={18} />}
+            Upload PDF
+          </button>
         </header>
 
         {error && <div className="error"><AlertCircle size={18} /> {error}</div>}
 
         <main className="layout">
-          <section className="chatCard">
-            <div className="chatTop">
-              <strong>Chat</strong>
-              <span>{uploadedFiles.length ? `${uploadedFiles.length} file(s) • ${chunks.length} chunks indexed` : "No PDF loaded yet"}</span>
-            </div>
+          <section className="chatCard panel">
+            <div className="sectionTitle"><MessageSquare size={22} /> <span>Chat</span></div>
+            <p className="sectionSub">Ask a question about the rules of hockey.</p>
 
             <div className="messages">
+              {!ready && messages.length === 1 && (
+                <div className="emptyState">
+                  <div className="emptyIcon">🏑</div>
+                  <h2>No PDF loaded yet</h2>
+                  <p>Upload the FIH Rules of Hockey PDF to get started.</p>
+                  <button className="chooseButton" onClick={() => fileInputRef.current?.click()}>
+                    <Upload size={18} /> Choose PDF File
+                  </button>
+                </div>
+              )}
+
               {messages.map((m, index) => (
                 <div key={index} className={`messageRow ${m.role}`}>
                   <div className={`message ${m.role}`}>{m.content}</div>
@@ -217,16 +226,16 @@ export default function App() {
                 value={question}
                 onChange={(e) => setQuestion(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && ask()}
-                placeholder="Ask: When is a penalty corner awarded?"
+                placeholder="Ask a question about the rules..."
               />
               <button className="send" onClick={ask}><Send size={18} /></button>
             </div>
           </section>
 
-          <aside className="sideCard">
-            <div className="sideTitle"><BookOpen size={16} /> Uploaded files</div>
+          <aside className="sideCard panel">
+            <div className="sectionTitle"><FileText size={22} /> <span>Uploaded Files</span></div>
             {uploadedFiles.length === 0 ? (
-              <p className="emptyFiles">No files uploaded yet.</p>
+              <div className="uploadEmptyBox">No files uploaded yet.</div>
             ) : (
               <div className="fileList">
                 {uploadedFiles.map((file, index) => (
@@ -238,14 +247,29 @@ export default function App() {
               </div>
             )}
 
-            <div className="sideTitle examplesTitle"><Search size={16} /> Try these</div>
-            {examples.map((example) => (
-              <button key={example} className="example" onClick={() => setQuestion(example)}>
-                {example}
-              </button>
-            ))}
+            <div className="sectionTitle examplesTitle"><Search size={20} /> <span>Try these</span></div>
+            <div className="examples">
+              {examples.map((example) => (
+                <button key={example} className="example" onClick={() => setQuestion(example)}>
+                  <Search size={16} /> {example}
+                </button>
+              ))}
+            </div>
           </aside>
         </main>
+
+        <div className="notice panel">
+          <Info size={22} />
+          <div>
+            <strong>This assistant searches your uploaded FIH Rules of Hockey PDF and provides references to relevant sections.</strong>
+            <p>For guidance only. Check the official rules and umpire decisions.</p>
+          </div>
+        </div>
+
+        <footer className="footer">
+          <span>Ipswich Hockey Club</span>
+          <span>FIH Rules of Hockey</span>
+        </footer>
       </div>
     </div>
   );
