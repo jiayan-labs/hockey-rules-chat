@@ -174,14 +174,15 @@ export default function App() {
 
   return (
     <div className="page">
+      <div className="banner"></div>
       <div className="shell">
         <header className="hero">
           <div className="clubMark" aria-hidden="true">
             <div className="sticks">⚔</div>
           </div>
           <div className="heroText">
-            <div className="eyebrow">Field Hockey Rules Assistant</div>
-            <h1>Ipswich Hockey Rules Assistant</h1>
+            <div className="eyebrow">Game Rules Assistant Chatbot for Outdoor Field Hockey</div>
+            <h1>Hockey Rules Assistant</h1>
             <p>Quick answers from the FIH Rules of Hockey</p>
           </div>
           <input
@@ -274,8 +275,8 @@ export default function App() {
         </div>
 
         <footer className="footer">
-          <span>Ipswich Hockey Club</span>
-          <span>FIH Rules of Hockey</span>
+          <span>Powered by JY Labs</span>
+          <span>Unofficial Chatbot App for FIH Rules of Hockey</span>
         </footer>
       </div>
     </div>
