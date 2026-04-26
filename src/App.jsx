@@ -1,6 +1,7 @@
 import React, { useMemo, useRef, useState } from "react";
 import { Upload, Send, Search, BookOpen, Loader2, AlertCircle, FileText, MessageSquare, Info } from "lucide-react";
 import "./App.css";
+import stickLogo from "./assets/stick-logo.svg";
 
 function normalise(text) {
   return text
@@ -178,7 +179,7 @@ export default function App() {
       <div className="shell">
         <header className="hero">
           <div className="clubMark" aria-hidden="true">
-            <div className="sticks">⚔</div>
+              <img src={stickLogo} alt="Hockey Stick Icon" className="logoImg" />
           </div>
           <div className="heroText">
             <div className="eyebrow">Game Rules Assistant Chatbot for Outdoor Field Hockey</div>

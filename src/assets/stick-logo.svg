@@ -1,0 +1,22 @@
+<svg width="120" height="120" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+  <rect width="120" height="120" rx="24" fill="#061936"></rect>
+  <rect x="14" y="14" width="92" height="92" rx="22" fill="none" stroke="#F5C542" stroke-width="5"></rect>
+
+  <!-- Hockey stick -->
+  <path d="M42 74 C48 82 58 79 64 68 L88 30" fill="none" stroke="#F5C542" stroke-width="10" stroke-linecap="round"></path>
+
+  <!-- Stick grip lines -->
+  <line x1="78" y1="42" x2="88" y2="48" stroke="#061936" stroke-width="3"></line>
+  <line x1="73" y1="49" x2="83" y2="55" stroke="#061936" stroke-width="3"></line>
+  <line x1="68" y1="56" x2="78" y2="62" stroke="#061936" stroke-width="3"></line>
+
+  <!-- Ball -->
+  <circle cx="76" cy="76" r="11" fill="#FFFFFF"></circle>
+  <circle cx="72" cy="73" r="1.8" fill="#061936"></circle>
+  <circle cx="78" cy="80" r="1.8" fill="#061936"></circle>
+  <circle cx="69" cy="82" r="1.8" fill="#061936"></circle>
+
+  <!-- Motion lines -->
+  <path d="M34 91 C50 84 70 83 88 85" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round"></path>
+  <path d="M45 98 C62 92 79 91 95 93" fill="none" stroke="#F5C542" stroke-width="3" stroke-linecap="round"></path>
+</svg>

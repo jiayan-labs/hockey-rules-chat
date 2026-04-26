@@ -55,14 +55,12 @@ button {
   border-radius: 18px;
   display: grid;
   place-items: center;
-  background: rgba(255, 255, 255, 0.04);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.28);
+  background: rgba(255, 255, 255, 0.03);
 }
 
-.sticks {
-  color: #f5c542;
-  font-size: 44px;
-  transform: rotate(45deg);
+.logoImg {
+  width: 80px;
+  height: 80px;
 }
 
 .eyebrow {
