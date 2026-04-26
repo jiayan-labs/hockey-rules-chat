@@ -85,6 +85,7 @@ export default function App() {
       role: "assistant",
       content:
         "Upload the FIH Rules of Hockey PDF to get started. Then ask a question about penalties, scoring, equipment, goalkeepers, aerial balls or umpiring.",
+      timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
     },
   ]);
   const fileInputRef = useRef(null);
@@ -129,6 +130,7 @@ export default function App() {
         {
           role: "assistant",
           content: `Loaded ${file.name}: ${pdf.numPages} pages and ${count} searchable chunks. Ask me a rules question.`,
+          timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
         },
       ]);
     } catch (e) {
@@ -146,8 +148,8 @@ export default function App() {
     if (!ready) {
       setMessages((prev) => [
         ...prev,
-        { role: "user", content: q },
-        { role: "assistant", content: "Upload the PDF first so I can search the rules." },
+        { role: "user", content: q, timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) },
+        { role: "assistant", content: "Upload the PDF first so I can search the rules.", timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) },
       ]);
       setQuestion("");
       return;
@@ -156,8 +158,8 @@ export default function App() {
     const matches = retrieve(q, chunks);
     setMessages((prev) => [
       ...prev,
-      { role: "user", content: q },
-      { role: "assistant", content: buildAnswer(q, matches) },
+      { role: "user", content: q, timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) },
+      { role: "assistant", content: buildAnswer(q, matches), timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) },
     ]);
     setQuestion("");
   }
@@ -214,11 +216,16 @@ export default function App() {
                 </div>
               )}
 
-              {messages.map((m, index) => (
-                <div key={index} className={`messageRow ${m.role}`}>
-                  <div className={`message ${m.role}`}>{m.content}</div>
-                </div>
-              ))}
+              {messages
+                .filter((m) => ready || m.role !== "assistant" || !m.content.startsWith("Upload the FIH Rules of Hockey PDF"))
+                .map((m, index) => (
+                  <div key={index} className={`messageRow ${m.role}`}>
+                    <div className={`message ${m.role}`}>
+                      <div>{m.content}</div>
+                      <div className="messageTime">{m.timestamp}</div>
+                    </div>
+                  </div>
+                ))}
             </div>
 
             <div className="inputBar">
