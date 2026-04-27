@@ -99,6 +99,7 @@ export default function App() {
   const chunks = useMemo(() => splitIntoChunks(pages), [pages]);
   const ready = chunks.length > 0;
 
+  /* // no longer used and instead parse the JSON version of the rules.
   useEffect(() => {
     if (hasLoadedDefault.current) return;
     hasLoadedDefault.current = true;
@@ -121,6 +122,49 @@ export default function App() {
     }
 
     loadDefaultPdf();
+  }, []);
+  */
+
+  useEffect(() => {
+  if (hasLoadedDefault.current) return;
+  hasLoadedDefault.current = true;
+
+  async function loadDefaultChunks() {
+    try {
+      const res = await fetch("/default-chunks.json");
+      if (!res.ok) throw new Error("Could not load default chunks");
+
+      const data = await res.json();
+
+      setPages(data.parsedPages);
+
+      setUploadedFiles([
+        {
+          name: data.fileName,
+          pages: data.pages,
+          chunks: data.chunkCount,
+          uploadedAt: new Date().toLocaleTimeString(),
+        },
+      ]);
+
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content: `Loaded ${data.fileName}: ${data.pages} pages and ${data.chunkCount} searchable chunks. Ask me a rules question.`,
+          timestamp: new Date().toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+        },
+      ]);
+    } catch (err) {
+      console.error("Failed to load default chunks", err);
+      setError("Could not load the default rules.");
+    }
+  }
+
+  loadDefaultChunks();
   }, []);
 
   async function parsePdf(file) {
