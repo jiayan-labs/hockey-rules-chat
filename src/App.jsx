@@ -1,8 +1,11 @@
+import * as pdfjsLib from "pdfjs-dist";
+import workerSrc from "pdfjs-dist/build/pdf.worker.min.mjs?url";
 import React, { useMemo, useRef, useEffect, useState } from "react";
 import { Upload, Send, Search, BookOpen, Loader2, AlertCircle, FileText, MessageSquare, Info } from "lucide-react";
 import "./App.css";
 import stickLogo from "./assets/stick-logo.svg";
 
+pdfjsLib.GlobalWorkerOptions.workerSrc = workerSrc;
 
 function normalise(text) {
   return text
@@ -126,12 +129,13 @@ export default function App() {
     const uploadedAt = new Date().toLocaleTimeString();
 
     try {
-      const pdfjs = await import("pdfjs-dist");
-      const worker = await import("pdfjs-dist/build/pdf.worker.mjs?url");
-      pdfjs.GlobalWorkerOptions.workerSrc = worker.default;
+      //const pdfjs = await import("pdfjs-dist");
+      //const worker = await import("pdfjs-dist/build/pdf.worker.mjs?url");
+      //pdfjs.GlobalWorkerOptions.workerSrc = worker.default;
 
       const buffer = await file.arrayBuffer();
-      const pdf = await pdfjs.getDocument({ data: buffer }).promise;
+      const pdf = await pdfjsLib.getDocument({ data: buffer }).promise;
+      
       const parsedPages = [];
 
       for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
@@ -145,14 +149,14 @@ export default function App() {
       setPages(parsedPages); //replaced above for default PDF loading on start
 
       const count = splitIntoChunks(parsedPages).length;
-      setUploadedFiles((prev) => [
-        ...prev,
+
+      setUploadedFiles([
         {
           name: file.name,
           pages: pdf.numPages,
           chunks: count,
           uploadedAt,
-        },
+      },
       ]);
       setMessages((prev) => [
         ...prev,
