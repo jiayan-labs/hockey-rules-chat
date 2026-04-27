@@ -1,7 +1,8 @@
-import React, { useMemo, useRef, useState } from "react";
+import React, { useMemo, useRef, useEffect, useState } from "react";
 import { Upload, Send, Search, BookOpen, Loader2, AlertCircle, FileText, MessageSquare, Info } from "lucide-react";
 import "./App.css";
 import stickLogo from "./assets/stick-logo.svg";
+
 
 function normalise(text) {
   return text
@@ -90,9 +91,34 @@ export default function App() {
     },
   ]);
   const fileInputRef = useRef(null);
+  const hasLoadedDefault = useRef(false);
 
   const chunks = useMemo(() => splitIntoChunks(pages), [pages]);
   const ready = chunks.length > 0;
+
+  useEffect(() => {
+    if (hasLoadedDefault.current) return;
+    hasLoadedDefault.current = true;
+
+    async function loadDefaultPdf() {
+      try {
+        const res = await fetch("/fih-Rules-of-hockey-2026-final.pdf");
+        const blob = await res.blob();
+
+        const file = new File(
+          [blob],
+          "fih-Rules-of-hockey-2026-final.pdf",
+          { type: "application/pdf" }
+        );
+
+        await parsePdf(file); // reuse your existing function
+      } catch (err) {
+        console.error("Failed to load default PDF", err);
+      }
+    }
+
+    loadDefaultPdf();
+  }, []);
 
   async function parsePdf(file) {
     setError("");
@@ -115,7 +141,9 @@ export default function App() {
         parsedPages.push({ page: pageNum, text, fileName: file.name });
       }
 
-      setPages((prev) => [...prev, ...parsedPages]);
+      //setPages((prev) => [...prev, ...parsedPages]);
+      setPages(parsedPages); //replaced above for default PDF loading on start
+
       const count = splitIntoChunks(parsedPages).length;
       setUploadedFiles((prev) => [
         ...prev,
@@ -142,7 +170,7 @@ export default function App() {
     }
   }
 
-  function ask() {
+  async function ask() {
     const q = question.trim();
     if (!q) return;
 
@@ -156,12 +184,44 @@ export default function App() {
       return;
     }
 
+    // call OpenAI API with question and retrieved matches, then update messages with the answer
     const matches = retrieve(q, chunks);
+
     setMessages((prev) => [
       ...prev,
       { role: "user", content: q, timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) },
-      { role: "assistant", content: buildAnswer(q, matches), timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) },
+      //{ role: "assistant", content: buildAnswer(q, matches), timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) },
     ]);
+
+    // Call backend instead of buildAnswer
+    try {
+      const res = await fetch("/api/ask", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question: q }),
+      });
+
+      const data = await res.json();
+
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content: data.answer,
+          timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+        },
+      ]);
+    } catch (err) {
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content: "Sorry, something went wrong calling OpenAI.",
+          timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+        },
+      ]);
+    }
+
     setQuestion("");
   }
 
