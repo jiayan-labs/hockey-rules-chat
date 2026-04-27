@@ -102,12 +102,12 @@ export default function App() {
 
     async function loadDefaultPdf() {
       try {
-        const res = await fetch("/fih-Rules-of-hockey-2026-final.pdf");
+        const res = await fetch("/fih-rules-of-hockey-2026-final.pdf");
         const blob = await res.blob();
 
         const file = new File(
           [blob],
-          "fih-Rules-of-hockey-2026-final.pdf",
+          "fih-rules-of-hockey-2026-final.pdf",
           { type: "application/pdf" }
         );
 
